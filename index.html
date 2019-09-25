@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test for Labmedia</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src='js/jquery.js'></script> 
+</head>
+<body>
+  <div class="wrapper">
+    <div class="block">
+      <div class="block__left">
+        <p class="block__title">Сотрудник:</p>
+      </div>
+      <div class="block__right">
+        <button class="block__button person">Выбрать</button>
+        <div class="block__selected"></div>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+    <div class="block">
+      <div class="block__left">
+        <p class="block__title">Должность:</p>
+      </div>
+      <div class="block__right">
+        <button class="block__button position">Выбрать</button>
+        <div class="block__selected"></div>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+    <div class="block">
+      <div class="block__left">
+        <p class="block__title">Организация:</p>
+      </div>
+      <div class="block__right">
+        <button class="block__button org">Выбрать</button>
+        <div class="block__selected"></div>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+    <div class="block">
+      <div class="block__left">
+        <p class="block__title">Подразделение:</p>
+      </div>
+      <div class="block__right">
+        <button class="block__button sub">Выбрать</button>
+        <div class="block__selected"></div>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+    <div class="position"></div>
+    <div class="org"></div>
+    <div class="sub"></div>
+  </div>
+  <div class="modal">
+    <div class="modal__window">
+      <div class="modal__header">
+        <h2 class="modal__title"></h2>
+        <button class="modal__close">X</button>
+      </div>
+      <div class="modal__list"></div>
+      <div class="modal__buttons">
+        <button class="modal__ok">ОК</button>
+        <button class="modal__cancel">Отмена</button>
+      </div>
+    </div>
+  </div>
+  <script src='js/script.js'></script>
+</body>
+</html>

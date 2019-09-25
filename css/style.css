@@ -1,0 +1,78 @@
+* {
+    margin: 0;
+    padding: 0;
+  }
+  .wrapper {
+    width: 1000px;
+    margin: auto;
+    background: #ccc;
+    padding: 100px 0;
+  }
+  .block {
+    width: 50%;
+    margin: auto;
+  }
+  .block:not(last-child) {
+    margin-bottom: 20px;
+  }
+  .block__left {
+    float: left;
+    font-weight: bold;
+    padding-left: 10px;
+  }
+  .block__right {
+    float: right;
+    width: 60%;
+  }
+  .block__button {
+    padding: 5px;
+  }
+  .clearfix {
+    clear: both;
+  }
+  
+  /*модальное окно*/
+  
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    display: none;
+  }
+  .modal__window {
+    position: absolute;
+    margin: auto;
+    width: 600px;
+    top: 150px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 10px 20px;
+    box-sizing: border-box;
+  }
+  .modal__header {
+    position: relative;
+  }
+  .modal__close {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .modal__list {
+    overflow-y: scroll;
+    max-height: 300px;
+  }
+  .modal__buttons {
+    width: 100%;
+    height: 30px;
+    text-align: right;
+  }
+  .modal__ok, .modal__cancel {
+    padding: 5px;
+    width: 70px;
+  }
+  
