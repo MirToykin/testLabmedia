@@ -65,7 +65,7 @@
     top: 0;
     right: 0;
   }
-  .modal__list {
+  .modal__content {
     overflow-y: scroll;
     max-height: 300px;
   }
@@ -78,6 +78,9 @@
   }
   .modal__table td {
       padding: 3px;
+  }
+  .selected {
+    background: #ccc;
   }
   .modal__buttons {
     width: 100%;

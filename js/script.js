@@ -40,8 +40,6 @@ function createPersonsList(response) {
         else return -1;
     })
 
-    $('.modal__list').append('<table class="modal__table"></div>');
-
     $(response).each(function(i, elem) {
       $('.modal__table').append('<tr><td>' + elem['lastname'] + '</td>\
       <td>' + elem['middlename'] + '</td>\
@@ -61,6 +59,16 @@ function appendItems(target) {
             switch (target.className.slice(14)) {
                 case 'person':
                     createPersonsList(response);
+                    $('.modal__table').click(function(e) {
+
+                      $('.modal__table tr').each(function(i, tr) {
+                        if ($(tr).hasClass('selected')) {
+                          $(tr).removeClass('selected');
+                        }
+                      });
+                      
+                      $(e.target).closest('tr').addClass('selected');
+                    })
                     break;
                 case 'position':
                     createPositionsList();
@@ -91,5 +99,6 @@ $('.block__button').each(function(i, item) {
 // временная функция
 $('.modal__cancel').click(function() {
   $('.modal').css('display', 'none');
+  $('.modal__table').empty();
 })
 
