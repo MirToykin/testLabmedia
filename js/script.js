@@ -1,5 +1,10 @@
 "use strict"
 
+var currentPerson,
+    currentPosition,
+    currentOrg,
+    currentSub;
+
 function getUrl(btnClass) {
   
   switch (btnClass) {
@@ -18,28 +23,54 @@ function getUrl(btnClass) {
 function getModalTitle(btnClass) {
   switch (btnClass) {
     case 'person':
-      return 'Выберите сотрудника';
+      return 'Выбор сотрудника';
     case 'position':
-      return 'Выберите должность';
+      return 'Выбор должность';
     case 'org': 
-      return 'Выберите организацию';
+      return 'Выбор организацию';
     case 'sub':
-      return 'Выберите подразделение';
+      return 'Выбор подразделение';
   }
+}
+
+function createPersonsList(response) {
+    // var items = JSON.parse(response);
+    response = response.sort(function(a, b) {
+        if (a['lastname'] > b['lastname']) return 1;
+        else return -1;
+    })
+
+    $('.modal__list').append('<table class="modal__table"></div>');
+
+    $(response).each(function(i, elem) {
+      $('.modal__table').append('<tr><td>' + elem['lastname'] + '</td>\
+      <td>' + elem['middlename'] + '</td>\
+      <td>' + elem['firstname'] + '</td><td>' + elem['birthday'] + '</td>');
+    })
 }
 
 function appendItems(target) {
   var url = getUrl(target.className.slice(14)); // с 14 символа начинается 
   //название уникального класса кнопки
+  console.log(url);
 
   $.ajax({ 
         url: url,
         success: function(response) {
-            console.log(response[0]);
-            // var items = JSON.parse(response);
-            $(response).each(function(i, elem) {
-              $('.modal__list').append('<p>' + elem['lastname'] + ' ' + elem['middlename']) + ' ' + elem['firstname'] + '</p>';
-            })
+
+            switch (target.className.slice(14)) {
+                case 'person':
+                    createPersonsList(response);
+                    break;
+                case 'position':
+                    createPositionsList();
+                    break;
+                case 'org':
+                    createOrgsList();
+                    break;
+                case 'sub':
+                    createSubsList();
+            }
         }
     });
 }
