@@ -5,6 +5,8 @@ var currentPerson,
     currentOrg,
     currentSub;
 
+var modalIdentifier;
+
 function getUrl(btnClass) {
   
   switch (btnClass) {
@@ -36,7 +38,7 @@ function getModalTitle(btnClass) {
 }
 
 function createTableContent(response) {
-    response = JSON.parse(response); // почему-то в edge response нужно 
+    // response = JSON.parse(response); // почему-то в edge response нужно 
     // парсить, а в chrome ajax.success возвращает уже нормальный массив
   
     var sortField = typeof response[0]['lastname'] === 'undefined' ? 'name' : 'lastname';
@@ -77,17 +79,30 @@ function highlightTr() {
 }
 
 function requestData(target) {
-  var url = getUrl(target.className.slice(14)); // с 14 символа начинается 
-  //название уникального класса кнопки
+  modalIdentifier = target.className.slice(14);// с 14 символа начинается название уникального класса кнопки
+  var url = getUrl(modalIdentifier);  
+ 
 
-  $.ajax({ 
-        url: url,
-        success: function(response) {
-          createTableContent(response);
-          highlightTr();
-          selectDataItem(response);
-        }
-    });
+  // $.ajax({ 
+  //       url: url,
+  //       success: function(response) {
+          // createTableContent(response);
+          // highlightTr();
+          // selectDataItem(response);
+  //       }
+  //   });
+  var request = $.ajax({ 
+    url: url
+  });
+  request.done(function(response) {
+    createTableContent(response);
+  });
+  request.done(function(response) {
+    highlightTr();
+  });
+  request.done(function(response) {
+    selectDataItem(response);
+  });
 }
 
 function selectDataItem(response) {
@@ -97,9 +112,34 @@ function selectDataItem(response) {
       
       $('.modal__table tr').each(function(i, tr) {
         if ($(tr).hasClass('selected')) {
-          console.log($(tr)['0'].innerText);
+
+          $(response).each(function(i, item) {
+
+            if (item['id'] == $(tr)['0'].id) {
+              switch (modalIdentifier) {
+                case 'person':
+                  currentPerson = $.extend(true, {}, item);
+                  break;
+                case 'position':
+                  currentPosition = $.extend(true, {}, item);
+                  break;
+                case 'org':
+                  currentOrg = $.extend(true, {}, item);
+                  break;
+                case 'sub':
+                  currentPerson = $.extend(true, {}, item);
+
+              }
+            }
+
+          });
+          console.log(currentPerson);
+          console.log(currentPosition);
+          console.log(currentOrg);
+          console.log(currentSub);
           $('.modal__table').empty();
           $('.modal').css('display', 'none');
+
         }
       });
 
