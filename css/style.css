@@ -24,6 +24,9 @@
   float: right;
   width: 60%;
 }
+.block__slected-value {
+  margin-right: 5px;
+}
 .block__button {
   padding: 5px;
 }

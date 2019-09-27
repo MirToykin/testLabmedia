@@ -112,8 +112,11 @@ function requestData(target) {
   $.ajax({ 
     url: url,
     success: function(response) {
-      response = JSON.parse(response); // почему-то в edge response нужно 
-      // парсить, а в chrome ajax.success возвращает уже нормальный массив
+      if (typeof response != 'object') {
+        response = JSON.parse(response); // почему-то в edge response нужно 
+       // парсить, а в chrome в ajax.success передается уже нормальный массив
+      }
+
       switch (modalIdentifier) {
         case 'person':
           currentPersons = response.slice();
@@ -137,7 +140,7 @@ function requestData(target) {
 
 function selectDataItem(response) {
 
-  $('.modal__buttons').click(function(e) {
+  $('.modal__buttons').unbind('click').click(function(e) { // unbind('click') для того, чтобы событие не срабатывало повторно
     
     if ($(e.target).attr('class') == 'modal__ok') {
       
@@ -172,14 +175,19 @@ function selectDataItem(response) {
                   
                   var age = getAge(item['birthday']);
                   if ( age < currentPosition['min_age'] || age > currentPosition['max_age']) {
-                    confirm('Выбранный сотрудник не подходит по возрасту. Вы уверены, что хотите выбрать этого сотрудника?') ? $.extend(true, currentDataItem, item) : '';
+                    var warning = confirm('Выбранный сотрудник не подходит по возрасту. Вы уверены, что хотите выбрать этого сотрудника?');
+                    if (warning) {
+                      handleSelect(currentDataItem, item);
+                    } 
+                    
                   } else {
-                    console.log('возраст тот');
-                    $.extend(true, currentDataItem, item);
+                    handleSelect(currentDataItem, item);
                   }
+                } else {
+                  handleSelect(currentDataItem, item);
                 }
               } else {
-                $.extend(true, currentDataItem, item);
+                handleSelect(currentDataItem, item);
               }
               // $.extend(true, currentDataItem, item);
             }
@@ -190,9 +198,8 @@ function selectDataItem(response) {
           console.log(currentPosition);
           console.log(currentOrg);
           console.log(currentSub);
-          $('.modal__table').empty();
-          $('.modal').css('display', 'none');
-
+          // $('.modal__table').empty();
+          // $('.modal').css('display', 'none');
         }
       });
 
@@ -202,6 +209,22 @@ function selectDataItem(response) {
     }
     
   })
+}
+
+function showSelect(item) {
+  if (modalIdentifier == 'person') {
+    $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['lastname'] + ' ' + item['middlename'] + 
+    ' ' + item['firstname'] + '</span><button class="block__remove-selected">X</button>');
+  } else {
+    $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['name'] + '</span><button class="block__remove-selected">X</button>');
+  }
+}
+
+function handleSelect(currentDataItem, item) {
+  $.extend(true, currentDataItem, item);
+  showSelect(item);
+  $('.modal__table').empty();
+  $('.modal').css('display', 'none');
 }
 
 function showModal(e) {
