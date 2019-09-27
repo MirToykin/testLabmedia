@@ -171,25 +171,20 @@ function selectDataItem(response) {
 
             if (item['id'] == $(tr)['0'].id) {
               if (currentDataItem == currentPerson) {
-                if (!isEmptyObj(currentPosition)) {
-                  
-                  var age = getAge(item['birthday']);
-                  if ( age < currentPosition['min_age'] || age > currentPosition['max_age']) {
-                    var warning = confirm('Выбранный сотрудник не подходит по возрасту. Вы уверены, что хотите выбрать этого сотрудника?');
-                    if (warning) {
-                      handleSelect(currentDataItem, item);
-                    } 
-                    
-                  } else {
-                    handleSelect(currentDataItem, item);
-                  }
-                } else {
-                  handleSelect(currentDataItem, item);
-                }
+
+                checkAge(currentPosition, item['birthday'], currentPosition, 
+                'Выбранный сотрудник не подходит по возрасту. Вы уверены, что хотите выбрать этого сотрудника?',
+                currentDataItem, item);
+
+              } else if (currentDataItem == currentPosition) {
+
+                checkAge(currentPerson, currentPerson['birthday'], item, 
+                'Выбранная должность не подходит по возрасту сотруднику. Вы уверены, что хотите выбрать эту должность?',
+                currentDataItem, item);
+
               } else {
                 handleSelect(currentDataItem, item);
               }
-              // $.extend(true, currentDataItem, item);
             }
 
           });
@@ -227,7 +222,24 @@ function handleSelect(currentDataItem, item) {
   $('.modal').css('display', 'none');
 }
 
+function checkAge(currentObj, birthDate, positionObj, warningText, currentDataItem, item) {
+  if (!isEmptyObj(currentObj)) {
+    var age = getAge(birthDate);
+    if (age < positionObj['min_age'] || age > positionObj['max_age']) {
+      var warning = confirm(warningText);
+      if (warning) {
+        handleSelect(currentDataItem, item);
+      }
+    } else {
+      handleSelect(currentDataItem, item);
+    }
+  } else {
+    handleSelect(currentDataItem, item);
+  }
+}
+
 function showModal(e) {
+
   e.preventDefault();
   $('.modal').css('display', 'block');
   $('body').css('overflow', 'hidden');
@@ -241,5 +253,7 @@ $('.block__button').each(function(i, item) {
 })
 
 
-// сделать ф-ю построения строк таблицы универсальной
-// сделать заголовок таблицы прибитый к ее верху
+// сделать:
+// заголовок таблицы прибитый к ее верху
+// обработчик кнопки удаления выбранного пункта
+// обработчик кнопки закрытия модального окна
