@@ -1,11 +1,40 @@
 "use strict"
 
-var currentPerson,
-    currentPosition,
-    currentOrg,
-    currentSub;
+var currentPerson = {},
+    currentPersons,
+    currentPosition = {},
+    currentPositions,
+    currentOrg = {},
+    currentOrgs,
+    currentSub = {},
+    currentSubs;
 
 var modalIdentifier;
+
+//------------------------HELPERS--------------------------------
+
+function isEmptyObj(obj) {
+    for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function getAge(dateString) {
+  var today = new Date();
+  var birthDate = new Date(dateString.replace(/(\d+).(\d+).(\d+)/, '$3/$2/$1'));
+  var age = today.getFullYear() - birthDate.getFullYear();
+  var monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff == 0 && today.getDate() - birthDate.getDate() < 0) ) {
+    age--;
+  }
+  return age;
+}
+
+//------------------------CORE--------------------------------
 
 function getUrl(btnClass) {
   
@@ -38,8 +67,6 @@ function getModalTitle(btnClass) {
 }
 
 function createTableContent(response) {
-    // response = JSON.parse(response); // почему-то в edge response нужно 
-    // парсить, а в chrome ajax.success возвращает уже нормальный массив
   
     var sortField = typeof response[0]['lastname'] === 'undefined' ? 'name' : 'lastname';
   
@@ -81,58 +108,84 @@ function highlightTr() {
 function requestData(target) {
   modalIdentifier = target.className.slice(14);// с 14 символа начинается название уникального класса кнопки
   var url = getUrl(modalIdentifier);  
- 
 
-  // $.ajax({ 
-  //       url: url,
-  //       success: function(response) {
-          // createTableContent(response);
-          // highlightTr();
-          // selectDataItem(response);
-  //       }
-  //   });
-  var request = $.ajax({ 
-    url: url
-  });
-  request.done(function(response) {
-    createTableContent(response);
-  });
-  request.done(function(response) {
-    highlightTr();
-  });
-  request.done(function(response) {
-    selectDataItem(response);
-  });
+  $.ajax({ 
+    url: url,
+    success: function(response) {
+      response = JSON.parse(response); // почему-то в edge response нужно 
+      // парсить, а в chrome ajax.success возвращает уже нормальный массив
+      switch (modalIdentifier) {
+        case 'person':
+          currentPersons = response.slice();
+          break;
+        case 'position':
+          currentPositions = response.slice();
+          break;
+        case 'org':
+          currentOrgs = response.slice();
+          break;
+        case 'sub':
+          currentSubs = response.slice();
+      }
+      
+      createTableContent(response);
+      highlightTr();
+      selectDataItem(response);
+    }
+   });
 }
 
 function selectDataItem(response) {
+
   $('.modal__buttons').click(function(e) {
     
     if ($(e.target).attr('class') == 'modal__ok') {
       
       $('.modal__table tr').each(function(i, tr) {
         if ($(tr).hasClass('selected')) {
-
-          $(response).each(function(i, item) {
+          var currentData,
+              currentDataItem;
+          
+          switch (modalIdentifier) {
+            case 'person':
+              currentData = currentPersons;
+              currentDataItem = currentPerson;
+              break;
+            case 'position':
+              currentData = currentPositions;
+              currentDataItem = currentPosition;
+              break;
+            case 'org':
+              currentData = currentOrgs;
+              currentDataItem = currentOrg;
+              break;
+            case 'sub':
+              currentData = currentSubs;
+              currentDataItem = currentSub;
+          }
+          
+          $(currentData).each(function(i, item) {
 
             if (item['id'] == $(tr)['0'].id) {
-              switch (modalIdentifier) {
-                case 'person':
-                  currentPerson = $.extend(true, {}, item);
-                  break;
-                case 'position':
-                  currentPosition = $.extend(true, {}, item);
-                  break;
-                case 'org':
-                  currentOrg = $.extend(true, {}, item);
-                  break;
-                case 'sub':
-                  currentPerson = $.extend(true, {}, item);
-
+              if (currentDataItem == currentPerson) {
+                if (!isEmptyObj(currentPosition)) {
+                  
+                  var age = getAge(item['birthday']);
+                  if ( age < currentPosition['min_age'] || age > currentPosition['max_age']) {
+                    confirm('Выбранный сотрудник не подходит по возрасту. Вы уверены, что хотите выбрать этого сотрудника?') ? $.extend(true, currentDataItem, item) : '';
+                  } else {
+                    console.log('возраст тот');
+                    $.extend(true, currentDataItem, item);
+                  }
+                }
+              } else {
+                $.extend(true, currentDataItem, item);
               }
+              // $.extend(true, currentDataItem, item);
             }
 
           });
+
           console.log(currentPerson);
           console.log(currentPosition);
           console.log(currentOrg);
@@ -163,6 +216,7 @@ function showModal(e) {
 $('.block__button').each(function(i, item) {
   $(item).click(showModal);
 })
+
 
 // сделать ф-ю построения строк таблицы универсальной
 // сделать заголовок таблицы прибитый к ее верху
