@@ -193,14 +193,11 @@ function selectDataItem(response) {
           console.log(currentPosition);
           console.log(currentOrg);
           console.log(currentSub);
-          // $('.modal__table').empty();
-          // $('.modal').css('display', 'none');
         }
       });
 
     } else if ($(e.target).attr('class') == 'modal__cancel') {
-      $('.modal__table').empty();
-      $('.modal').css('display', 'none');
+      closeModal();
     }
     
   })
@@ -209,17 +206,20 @@ function selectDataItem(response) {
 function showSelect(item) {
   if (modalIdentifier == 'person') {
     $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['lastname'] + ' ' + item['middlename'] + 
-    ' ' + item['firstname'] + '</span><button class="block__remove-selected">X</button>');
+    ' ' + item['firstname'] + '</span><button class="block__remove-selected ' + modalIdentifier + '">X</button>');
   } else {
-    $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['name'] + '</span><button class="block__remove-selected">X</button>');
+    $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['name'] + '</span><button class="block__remove-selected ' + modalIdentifier + '">X</button>');
   }
+
+  $('.block__selected-' + modalIdentifier).unbind('click').click(function(e) {
+    $(e.target).parent().html('');
+  })
 }
 
 function handleSelect(currentDataItem, item) {
   $.extend(true, currentDataItem, item);
   showSelect(item);
-  $('.modal__table').empty();
-  $('.modal').css('display', 'none');
+  closeModal();
 }
 
 function checkAge(currentObj, birthDate, positionObj, warningText, currentDataItem, item) {
@@ -238,22 +238,36 @@ function checkAge(currentObj, birthDate, positionObj, warningText, currentDataIt
   }
 }
 
+function closeModal() {
+  $('.modal__table').empty();
+  $('.modal').css('display', 'none');
+}
+
 function showModal(e) {
 
   e.preventDefault();
   $('.modal').css('display', 'block');
   $('body').css('overflow', 'hidden');
   $('.modal__title').text(getModalTitle(e.target.className.slice(14)));
+
   requestData(e.target);
+
+  $('.modal__close').click(function(){
+    closeModal();
+  });
   
 }
 
 $('.block__button').each(function(i, item) {
   $(item).click(showModal);
-})
-
+});
 
 // сделать:
 // заголовок таблицы прибитый к ее верху
-// обработчик кнопки удаления выбранного пункта
 // обработчик кнопки закрытия модального окна
+// подумать над прослушиванием клика общим контейнером для кнопок 'Выбрать' и 'X'
+// сделать вывод подразделений относящихся только к данной организации и вывод названия 
+   // организации рядом с названием подразделения
+// сделать подсветку выбранного пункта при повторном открытии
+// убрать прокрутку там, где она не нужна
+// причесать код
