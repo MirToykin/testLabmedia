@@ -74,22 +74,65 @@ function createTableContent(response) {
         if (a[sortField] > b[sortField]) return 1;
         else return -1;
     });
-  
-    var tableHTML = '<tr'
 
-    $(response).each(function(i, elem) {
-      tableHTML += ' id="' + elem['id'] + '">';
-      for (var key in elem) {
-        if (key != "id" && key != "org_id") {
-          tableHTML += '<td>' + elem[key] + '</td>';         
-        }
+    var tableHTML;
+
+    if (modalIdentifier == 'sub') {
+      if (isEmptyObj(currentOrg)) {
+        // если организация не выбрана выводим все подразделения всех организаций
+        $.ajax({
+          url: 'json/orgs.json',
+          success: function(orgs) {
+            if (typeof orgs != 'object') {
+              orgs = JSON.parse(orgs); 
+            }
+
+            tableHTML = showFullList(response, '<tr', orgs);
+
+            highlightTr();
+            selectDataItem(response);
+          }
+        });
+
+      } else {
+        // если организация выбрана, то выводим только ее подразделения
+        var filteredResponse = $.grep(response, function(item) {
+          return item['org_id'] == currentOrg['id'];
+        })
+        tableHTML = showFullList(filteredResponse, '<tr', currentOrgs);
+      }
+    } else {
+      tableHTML = showFullList(response, '<tr');
+    }
+
+}
+
+function showFullList(response, tableHTML, orgs) {
+  $(response).each(function(i, elem) {
+    tableHTML += ' id="' + elem['id'] + '">';
+    for (var key in elem) {
+      var orgNameTd;
+
+      if (modalIdentifier == 'sub'/* && isEmptyObj(currentOrg)*/) {
+        var subsOrg = $.grep(orgs, function(item) {
+          return elem['org_id'] == item['id'];
+        })
+        orgNameTd = '<td>' + subsOrg[0]['name'] + '</td>';
+      } else {
+        orgNameTd = '';
       }
       
-      tableHTML += '</tr><tr';
-    });
-  
-    tableHTML = tableHTML.slice(0, tableHTML.length - 3); // убираем крайний открывающий тег
-    $('.modal__table').html(tableHTML); 
+      if (key != "id" && key != "org_id") {
+        tableHTML += '<td>' + elem[key] + '</td>' + orgNameTd;         
+      }
+    }
+
+    tableHTML += '</tr><tr';
+  });
+
+  tableHTML = tableHTML.slice(0, tableHTML.length - 3); // убираем крайний открывающий тег
+  $('.modal__table').html(tableHTML); 
+
 }
 
 function highlightTr() {
@@ -264,10 +307,7 @@ $('.block__button').each(function(i, item) {
 
 // сделать:
 // заголовок таблицы прибитый к ее верху
-// обработчик кнопки закрытия модального окна
-// подумать над прослушиванием клика общим контейнером для кнопок 'Выбрать' и 'X'
-// сделать вывод подразделений относящихся только к данной организации и вывод названия 
-   // организации рядом с названием подразделения
+// сделать очистку current-объектов при удалении выбранного элемента в интерфейсе
 // сделать подсветку выбранного пункта при повторном открытии
 // убрать прокрутку там, где она не нужна
 // причесать код
