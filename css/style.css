@@ -22,7 +22,7 @@
 }
 .block__right {
   float: right;
-  width: 60%;
+  width: 65%;
 }
 .block__slected-value {
   margin-right: 5px;
@@ -78,9 +78,7 @@
     border-collapse: collapse;
     width: 100%;
     table-layout: fixed;
-}
-.modal__table-header {
-  text-align: left;
+    text-align: left;
 }
 .modal__table tr:hover {
     background: #ccc;
