@@ -249,13 +249,24 @@ function selectDataItem(response) {
 function showSelect(item) {
   if (modalIdentifier == 'person') {
     $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['lastname'] + ' ' + item['middlename'] + 
-    ' ' + item['firstname'] + '</span><button class="block__remove-selected ' + modalIdentifier + '">X</button>');
+    ' ' + item['firstname'] + '</span><button class="block__remove-selected-' + modalIdentifier + '">X</button>');
   } else {
-    $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['name'] + '</span><button class="block__remove-selected ' + modalIdentifier + '">X</button>');
+    $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['name'] + '</span><button class="block__remove-selected-' + modalIdentifier + '">X</button>');
   }
 
-  $('.block__selected-' + modalIdentifier).unbind('click').click(function(e) {
+  $('.block__remove-selected-' + modalIdentifier).unbind('click').click(function(e) {
     $(e.target).parent().html('');
+
+    if ($(e.target).hasClass('block__remove-selected-person')) {
+      currentPerson = {};
+    } else if ($(e.target).hasClass('block__remove-selected-position')) {
+      currentPosition = {};
+    } else if ($(e.target).hasClass('block__remove-selected-org')) {
+      currentOrg = {};
+      $('.block__remove-selected-sub').trigger('click');
+    } else {
+      currentSub = {};
+    }
   })
 }
 
@@ -307,7 +318,6 @@ $('.block__button').each(function(i, item) {
 
 // сделать:
 // заголовок таблицы прибитый к ее верху
-// сделать очистку current-объектов при удалении выбранного элемента в интерфейсе
 // сделать подсветку выбранного пункта при повторном открытии
 // убрать прокрутку там, где она не нужна
 // причесать код
