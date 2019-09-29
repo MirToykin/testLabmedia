@@ -9,7 +9,11 @@ var currentPerson = {},
     currentSub = {},
     currentSubs;
 
-var modalIdentifier;
+var modalIdentifier,
+    modalPersonScroll = 0,
+    modalPositionScroll = 0,
+    modalOrgScroll = 0,
+    modalSubScroll = 0;
 
 //------------------------HELPERS--------------------------------
 
@@ -75,8 +79,6 @@ function createTableContent(response) {
         else return -1;
     });
 
-    var tableHTML;
-
     if (modalIdentifier == 'sub') {
       if (isEmptyObj(currentOrg)) {
         // если организация не выбрана выводим все подразделения всех организаций
@@ -87,7 +89,7 @@ function createTableContent(response) {
               orgs = JSON.parse(orgs); 
             }
 
-            tableHTML = showFullList(response, '<tr', orgs);
+            showList(response, '<tr', orgs);
 
             highlightTr();
             selectDataItem(response);
@@ -99,21 +101,45 @@ function createTableContent(response) {
         var filteredResponse = $.grep(response, function(item) {
           return item['org_id'] == currentOrg['id'];
         })
-        tableHTML = showFullList(filteredResponse, '<tr', currentOrgs);
+        showList(filteredResponse, '<tr', currentOrgs);
       }
     } else {
-      tableHTML = showFullList(response, '<tr');
+      showList(response, '<tr');
     }
 
 }
 
-function showFullList(response, tableHTML, orgs) {
+function showList(response, tableHTML, orgs) {
   $(response).each(function(i, elem) {
-    tableHTML += ' id="' + elem['id'] + '">';
+    
+    var selectedClass = '';
+    switch(modalIdentifier) {
+      case 'person':
+        if (!isEmptyObj(currentPerson) && currentPerson['id'] == elem['id']) {
+          selectedClass = ' class="selected"';
+        }
+        break;
+      case 'position':
+        if (!isEmptyObj(currentPosition) && currentPosition['id'] == elem['id']) {
+          selectedClass = ' class="selected"';
+        }
+        break;
+      case 'org':
+        if (!isEmptyObj(currentOrg) && currentOrg['id'] == elem['id']) {
+          selectedClass = ' class="selected"';
+        }
+        break;
+      case 'sub':
+        if (!isEmptyObj(currentSub) && currentSub['id'] == elem['id']) {
+          selectedClass = ' class="selected"';
+        }
+    }
+
+    tableHTML += ' id="' + elem['id'] + '"' + selectedClass + '>';
     for (var key in elem) {
       var orgNameTd;
 
-      if (modalIdentifier == 'sub'/* && isEmptyObj(currentOrg)*/) {
+      if (modalIdentifier == 'sub') {
         var subsOrg = $.grep(orgs, function(item) {
           return elem['org_id'] == item['id'];
         })
@@ -177,6 +203,20 @@ function requestData(target) {
       createTableContent(response);
       highlightTr();
       selectDataItem(response);
+
+      switch(modalIdentifier) {
+        case 'person':
+          $('.modal__content').scrollTop(modalPersonScroll);
+          break;
+        case 'position':
+          $('.modal__content').scrollTop(modalPositionScroll);
+          break;
+        case 'org':
+          $('.modal__content').scrollTop(modalOrgScroll);
+          break;
+        case 'sub':
+          $('.modal__content').scrollTop(modalSubScroll);
+      }
     }
    });
 }
@@ -196,18 +236,22 @@ function selectDataItem(response) {
             case 'person':
               currentData = currentPersons;
               currentDataItem = currentPerson;
+              modalPersonScroll = $('.modal__content').scrollTop();
               break;
             case 'position':
               currentData = currentPositions;
               currentDataItem = currentPosition;
+              modalPositionScroll = $('.modal__content').scrollTop();
               break;
             case 'org':
               currentData = currentOrgs;
               currentDataItem = currentOrg;
+              modalOrgScroll = $('.modal__content').scrollTop();
               break;
             case 'sub':
               currentData = currentSubs;
               currentDataItem = currentSub;
+              modalSubScroll = $('.modal__content').scrollTop();
           }
           
           $(currentData).each(function(i, item) {
@@ -259,13 +303,17 @@ function showSelect(item) {
 
     if ($(e.target).hasClass('block__remove-selected-person')) {
       currentPerson = {};
+      modalPersonScroll = 0;
     } else if ($(e.target).hasClass('block__remove-selected-position')) {
       currentPosition = {};
+      modalPositionScroll = 0;
     } else if ($(e.target).hasClass('block__remove-selected-org')) {
       currentOrg = {};
+      modalOrgScroll = 0;
       $('.block__remove-selected-sub').trigger('click');
     } else {
       currentSub = {};
+      modalSubScroll = 0;
     }
   })
 }
