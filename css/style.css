@@ -68,14 +68,19 @@
   top: 0;
   right: 0;
 }
-.modal__content {
-  overflow-y: scroll;
-  max-height: 300px;
+.modal__content-main {
+  overflow-y: auto;
+  max-height: 350px;
+  position: relative;
+  margin: 10px 0;
 }
-.modal__table {
+.modal__table, .modal__table-header {
     border-collapse: collapse;
     width: 100%;
     table-layout: fixed;
+}
+.modal__table-header {
+  text-align: left;
 }
 .modal__table tr:hover {
     background: #ccc;

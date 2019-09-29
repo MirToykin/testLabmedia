@@ -18,15 +18,18 @@ var modalIdentifier,
 //------------------------HELPERS--------------------------------
 
 function isEmptyObj(obj) {
+
     for (var i in obj) {
         if (obj.hasOwnProperty(i)) {
             return false;
         }
     }
+
     return true;
 }
 
 function getAge(dateString) {
+
   var today = new Date();
   var birthDate = new Date(dateString.replace(/(\d+).(\d+).(\d+)/, '$3/$2/$1'));
   var age = today.getFullYear() - birthDate.getFullYear();
@@ -40,18 +43,18 @@ function getAge(dateString) {
 
 //------------------------CORE--------------------------------
 
-function getUrl(btnClass) {
-  
-  switch (btnClass) {
-    case 'person':
-      return 'json/persons.json';
-    case 'position':
-      return 'json/positions.json';
-    case 'org': 
-      return 'json/orgs.json';
-    case 'sub':
-      return 'json/subs.json';
-  }
+function showModal(e) {
+
+  e.preventDefault();
+  $('.modal').css('display', 'block');
+  $('body').css('overflow', 'hidden');
+  $('.modal__title').text(getModalTitle(e.target.className.slice(14)));
+
+  requestData(e.target);
+
+  $('.modal__close').click(function(){
+    closeModal();
+  });
   
 }
 
@@ -70,49 +73,138 @@ function getModalTitle(btnClass) {
   
 }
 
+function requestData(target) {
+
+  modalIdentifier = target.className.slice(14);// с 14 символа начинается название уникального класса кнопки
+  var url = getUrl(modalIdentifier);  
+
+  $.ajax({ 
+    url: url,
+    success: function(response) {
+      if (typeof response != 'object') {
+        response = JSON.parse(response); 
+      }
+
+      switch (modalIdentifier) {
+        case 'person':
+          currentPersons = response.slice();
+          break;
+        case 'position':
+          currentPositions = response.slice();
+          break;
+        case 'org':
+          currentOrgs = response.slice();
+          break;
+        case 'sub':
+          currentSubs = response.slice();
+      }
+      
+      createTableContent(response);
+      highlightTr();
+      selectDataItem(response);
+
+      switch(modalIdentifier) {
+        case 'person':
+          $('.modal__content-main').scrollTop(modalPersonScroll);
+          break;
+        case 'position':
+          $('.modal__content-main').scrollTop(modalPositionScroll);
+          break;
+        case 'org':
+          $('.modal__content-main').scrollTop(modalOrgScroll);
+          break;
+        case 'sub':
+          $('.modal__content-main').scrollTop(modalSubScroll);
+      }
+    }
+   });
+}
+
+function getUrl(btnClass) {
+  
+  switch (btnClass) {
+    case 'person':
+      return 'json/persons.json';
+    case 'position':
+      return 'json/positions.json';
+    case 'org': 
+      return 'json/orgs.json';
+    case 'sub':
+      return 'json/subs.json';
+  }
+  
+}
+
 function createTableContent(response) {
   
-    var sortField = typeof response[0]['lastname'] === 'undefined' ? 'name' : 'lastname';
-  
-    response = response.sort(function(a, b) {
-        if (a[sortField] > b[sortField]) return 1;
-        else return -1;
-    });
+  var sortField = typeof response[0]['lastname'] === 'undefined' ? 'name' : 'lastname';
 
-    if (modalIdentifier == 'sub') {
-      if (isEmptyObj(currentOrg)) {
-        // если организация не выбрана выводим все подразделения всех организаций
-        $.ajax({
-          url: 'json/orgs.json',
-          success: function(orgs) {
-            if (typeof orgs != 'object') {
-              orgs = JSON.parse(orgs); 
-            }
+  response = response.sort(function(a, b) {
+      if (a[sortField] > b[sortField]) return 1;
+      else return -1;
+  });
 
-            showList(response, '<tr', orgs);
+  if (modalIdentifier == 'sub') {
 
-            highlightTr();
-            selectDataItem(response);
+    createTableHeader(modalIdentifier);
+
+    if (isEmptyObj(currentOrg)) {
+      // если организация не выбрана выводим все подразделения всех организаций
+      $.ajax({
+        url: 'json/orgs.json',
+        success: function(orgs) {
+          if (typeof orgs != 'object') {
+            orgs = JSON.parse(orgs); 
           }
-        });
 
-      } else {
-        // если организация выбрана, то выводим только ее подразделения
-        var filteredResponse = $.grep(response, function(item) {
-          return item['org_id'] == currentOrg['id'];
-        })
-        showList(filteredResponse, '<tr', currentOrgs);
-      }
+          showList(response, '<tr', orgs);
+
+          highlightTr();
+          selectDataItem(response);
+        }
+      });
+
     } else {
-      showList(response, '<tr');
+      // если организация выбрана, то выводим только ее подразделения
+      var filteredResponse = $.grep(response, function(item) {
+        return item['org_id'] == currentOrg['id'];
+      })
+      showList(filteredResponse, '<tr', currentOrgs);
     }
 
+  } else {
+    createTableHeader(modalIdentifier);
+    showList(response, '<tr');
+  }
+
+}
+
+function createTableHeader(modalIdentifier) {
+  var cells;
+
+  switch(modalIdentifier) {
+    case 'person':
+      cells = '<th>Фамилия</th><th>Имя</th><th>Отчество</th><th>Дата рождения</th>';
+      break;
+    case 'position':
+      cells = '<th>Название</th><th>Мин. возраст</th><th>Макс. возраст</th>';
+      break;
+    case 'org':
+        cells = '<th>Название</th><th>Страна</th>';
+      break;
+    case 'sub':
+        cells = '<th>Название</th><th>Организация</th>';
+  }
+
+  var tableHeader = '<tr>' + cells + '</tr>';
+
+  $('.modal__table-header').html(tableHeader);
 }
 
 function showList(response, tableHTML, orgs) {
   $(response).each(function(i, elem) {
-    
     var selectedClass = '';
+
     switch(modalIdentifier) {
       case 'person':
         if (!isEmptyObj(currentPerson) && currentPerson['id'] == elem['id']) {
@@ -136,14 +228,17 @@ function showList(response, tableHTML, orgs) {
     }
 
     tableHTML += ' id="' + elem['id'] + '"' + selectedClass + '>';
+
     for (var key in elem) {
       var orgNameTd;
 
       if (modalIdentifier == 'sub') {
+
         var subsOrg = $.grep(orgs, function(item) {
           return elem['org_id'] == item['id'];
         })
         orgNameTd = '<td>' + subsOrg[0]['name'] + '</td>';
+
       } else {
         orgNameTd = '';
       }
@@ -171,54 +266,7 @@ function highlightTr() {
     });
 
     $(e.target).closest('tr').addClass('selected');
-  })
-}
-
-function requestData(target) {
-  modalIdentifier = target.className.slice(14);// с 14 символа начинается название уникального класса кнопки
-  var url = getUrl(modalIdentifier);  
-
-  $.ajax({ 
-    url: url,
-    success: function(response) {
-      if (typeof response != 'object') {
-        response = JSON.parse(response); // почему-то в edge response нужно 
-       // парсить, а в chrome в ajax.success передается уже нормальный массив
-      }
-
-      switch (modalIdentifier) {
-        case 'person':
-          currentPersons = response.slice();
-          break;
-        case 'position':
-          currentPositions = response.slice();
-          break;
-        case 'org':
-          currentOrgs = response.slice();
-          break;
-        case 'sub':
-          currentSubs = response.slice();
-      }
-      
-      createTableContent(response);
-      highlightTr();
-      selectDataItem(response);
-
-      switch(modalIdentifier) {
-        case 'person':
-          $('.modal__content').scrollTop(modalPersonScroll);
-          break;
-        case 'position':
-          $('.modal__content').scrollTop(modalPositionScroll);
-          break;
-        case 'org':
-          $('.modal__content').scrollTop(modalOrgScroll);
-          break;
-        case 'sub':
-          $('.modal__content').scrollTop(modalSubScroll);
-      }
-    }
-   });
+  });
 }
 
 function selectDataItem(response) {
@@ -236,22 +284,22 @@ function selectDataItem(response) {
             case 'person':
               currentData = currentPersons;
               currentDataItem = currentPerson;
-              modalPersonScroll = $('.modal__content').scrollTop();
+              modalPersonScroll = $('.modal__content-main').scrollTop();
               break;
             case 'position':
               currentData = currentPositions;
               currentDataItem = currentPosition;
-              modalPositionScroll = $('.modal__content').scrollTop();
+              modalPositionScroll = $('.modal__content-main').scrollTop();
               break;
             case 'org':
               currentData = currentOrgs;
               currentDataItem = currentOrg;
-              modalOrgScroll = $('.modal__content').scrollTop();
+              modalOrgScroll = $('.modal__content-main').scrollTop();
               break;
             case 'sub':
               currentData = currentSubs;
               currentDataItem = currentSub;
-              modalSubScroll = $('.modal__content').scrollTop();
+              modalSubScroll = $('.modal__content-main').scrollTop();
           }
           
           $(currentData).each(function(i, item) {
@@ -275,11 +323,6 @@ function selectDataItem(response) {
             }
 
           });
-
-          console.log(currentPerson);
-          console.log(currentPosition);
-          console.log(currentOrg);
-          console.log(currentSub);
         }
       });
 
@@ -287,10 +330,37 @@ function selectDataItem(response) {
       closeModal();
     }
     
-  })
+  });
+}
+
+function checkAge(currentObj, birthDate, positionObj, warningText, currentDataItem, item) {
+
+  if (!isEmptyObj(currentObj)) {
+    var age = getAge(birthDate);
+
+    if (age < positionObj['min_age'] || age > positionObj['max_age']) {
+      var warning = confirm(warningText);
+      if (warning) {
+        handleSelect(currentDataItem, item);
+      }
+
+    } else {
+      handleSelect(currentDataItem, item);
+    }
+
+  } else {
+    handleSelect(currentDataItem, item);
+  }
+}
+
+function handleSelect(currentDataItem, item) {
+  $.extend(true, currentDataItem, item);
+  showSelect(item);
+  closeModal();
 }
 
 function showSelect(item) {
+
   if (modalIdentifier == 'person') {
     $('.block__selected-' + modalIdentifier).html('<span class="block__slected-value">' + item['lastname'] + ' ' + item['middlename'] + 
     ' ' + item['firstname'] + '</span><button class="block__remove-selected-' + modalIdentifier + '">X</button>');
@@ -315,29 +385,7 @@ function showSelect(item) {
       currentSub = {};
       modalSubScroll = 0;
     }
-  })
-}
-
-function handleSelect(currentDataItem, item) {
-  $.extend(true, currentDataItem, item);
-  showSelect(item);
-  closeModal();
-}
-
-function checkAge(currentObj, birthDate, positionObj, warningText, currentDataItem, item) {
-  if (!isEmptyObj(currentObj)) {
-    var age = getAge(birthDate);
-    if (age < positionObj['min_age'] || age > positionObj['max_age']) {
-      var warning = confirm(warningText);
-      if (warning) {
-        handleSelect(currentDataItem, item);
-      }
-    } else {
-      handleSelect(currentDataItem, item);
-    }
-  } else {
-    handleSelect(currentDataItem, item);
-  }
+  });
 }
 
 function closeModal() {
@@ -345,27 +393,6 @@ function closeModal() {
   $('.modal').css('display', 'none');
 }
 
-function showModal(e) {
-
-  e.preventDefault();
-  $('.modal').css('display', 'block');
-  $('body').css('overflow', 'hidden');
-  $('.modal__title').text(getModalTitle(e.target.className.slice(14)));
-
-  requestData(e.target);
-
-  $('.modal__close').click(function(){
-    closeModal();
-  });
-  
-}
-
 $('.block__button').each(function(i, item) {
   $(item).click(showModal);
 });
-
-// сделать:
-// заголовок таблицы прибитый к ее верху
-// сделать подсветку выбранного пункта при повторном открытии
-// убрать прокрутку там, где она не нужна
-// причесать код
