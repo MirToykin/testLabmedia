@@ -41,14 +41,14 @@ function getAge(dateString) {
   return age;
 }
 
-//------------------------CORE--------------------------------
+//------------------------MAIN--------------------------------
 
 function showModal(e) {
 
   e.preventDefault();
-  $('.modal').css('display', 'block');
+  generateModal();
   $('body').css('overflow', 'hidden');
-  $('.modal__title').text(getModalTitle(e.target.className.slice(14)));
+  $('.modal__title').text(getModalTitle(e.target.className.slice(14)));// с 14 символа начинается название уникального класса кнопки
 
   requestData(e.target);
 
@@ -56,6 +56,31 @@ function showModal(e) {
     closeModal();
   });
   
+}
+
+function generateModal() {
+  
+  $('<div>', { class: 'modal'}).appendTo('.wrapper');
+  
+  $('<div>', { class: 'modal__window'}).appendTo('.modal');
+    
+  $('<div>', { class: 'modal__header'}).appendTo('.modal__window');
+  $('<div>', { class: 'modal__content'}).appendTo('.modal__window');
+  $('<div>', { class: 'modal__buttons'}).appendTo('.modal__window');
+  
+  $('<h2>', { class: 'modal__title'}).appendTo('.modal__header');
+  $('<button>', { class: 'modal__close', text: 'X'}).appendTo('.modal__header');  
+  
+  $('<div>', { class: 'modal__content-header'}).appendTo('.modal__content');
+  $('<div>', { class: 'modal__content-main'}).appendTo('.modal__content');
+  
+  $('<button>', { class: 'modal__ok', text: 'OK'}).appendTo('.modal__buttons');  
+  $('<button>', { class: 'modal__cancel', text: 'Отмена'}).appendTo('.modal__buttons');
+  
+  $('<table>', { class: 'modal__table-header'}).appendTo('.modal__content-header');
+  
+  $('<table>', { class: 'modal__table'}).appendTo('.modal__content-main');
+
 }
 
 function getModalTitle(btnClass) {
@@ -75,7 +100,7 @@ function getModalTitle(btnClass) {
 
 function requestData(target) {
 
-  modalIdentifier = target.className.slice(14);// с 14 символа начинается название уникального класса кнопки
+  modalIdentifier = target.className.slice(14);
   var url = getUrl(modalIdentifier);  
 
   $.ajax({ 
@@ -176,6 +201,9 @@ function createTableContent(response) {
     createTableHeader(modalIdentifier);
     showList(response, '<tr');
   }
+  
+  $('.modal__content-header').width($('.modal__content-main').prop('clientWidth')); // для корректного 
+  // отображения заголовка таблицы при наличии полосы прокрутки
 
 }
 
@@ -316,7 +344,7 @@ function selectDataItem(response) {
                 checkAge(currentPerson, currentPerson['birthday'], item, 
                 'Выбранная должность не подходит по возрасту сотруднику. Вы уверены, что хотите выбрать эту должность?',
                 currentDataItem, item);
-
+                
               } else {
                 handleSelect(currentDataItem, item);
               }
@@ -389,8 +417,8 @@ function showSelect(item) {
 }
 
 function closeModal() {
-  $('.modal__table').empty();
-  $('.modal').css('display', 'none');
+  $('.modal').remove();
+  $('body').css('overflow', '');
 }
 
 $('.block__button').each(function(i, item) {
